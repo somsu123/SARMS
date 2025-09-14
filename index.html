@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>SARMS - Smart Attendance and Resource Management System</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: rgba(30, 41, 59, 0.5);
+      --panel-2: rgba(15, 23, 42, 0.5);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #8b5cf6;
+      --primary-700: #6d28d9;
+      --accent: #ec4899;
+      --danger: #f43f5e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.2), transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15), transparent 50%),
+                  var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    header {
+      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px);
+      background: rgba(2, 6, 23, 0.6);
+      border-bottom: 1px solid rgba(148, 163, 184, .15);
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 16px }
+    .brand { display: flex; align-items: center; gap: 12px }
+    .brand .logo { width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: grid; place-items: center; font-weight: 800; color: #fff; }
+    .brand h1 { margin: 0; font-size: 18px; letter-spacing: .4px }
+
+    .tabs { display: flex; flex-wrap: nowrap; gap: 4px; margin-top: 6px; overflow: hidden }
+    .tab-btn {
+      padding: 6px 8px; background: var(--panel); color: var(--text); border: 1px solid rgba(148,163,184,.15);
+      border-radius: 8px; cursor: pointer; font-size: 12px; line-height: 1; transition: .2s all; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      backdrop-filter: blur(8px);
+    }
+    .tab-btn.active { background: rgba(51, 65, 85, 0.7); border-color: rgba(148,163,184,.35); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
+    .tab-btn:hover { transform: translateY(-1px); border-color: rgba(148,163,184,.25); }
+
+    .grid { display: grid; gap: 16px }
+    @media (min-width: 900px) { .grid-2 { grid-template-columns: 1.5fr 1fr } }
+    @media (min-width: 1200px) { .grid-3 { grid-template-columns: 1fr 1fr 1fr } }
+
+    .card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: 16px; padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.3);
+      backdrop-filter: blur(10px);
+      transition: .3s all;
+    }
+    .card:hover { border-color: rgba(148,163,184,.2); transform: translateY(-2px); }
+    .card h3 { margin: 0 0 10px 0; font-size: 16px; color: #f1f5f9; }
+    .muted { color: var(--muted); font-size: 12px }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+    .row > * { flex: 1 }
+
+    input, select, button, textarea {
+      border-radius: 10px; border: 1px solid rgba(148,163,184,.2);
+      background: rgba(15, 23, 42, 0.7); color: var(--text); padding: 10px 12px; font-size: 14px;
+      outline: none; width: 100%;
+      transition: .2s all;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+    textarea { min-height: 100px; resize: vertical }
+    button { cursor: pointer; transition: .2s transform, .2s background, .2s box-shadow; font-weight: 600; }
+    .btn { background: linear-gradient(180deg, rgba(51, 65, 85, 0.8), rgba(30, 41, 59, 0.8)); }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,.2); }
+    .btn-primary { background: linear-gradient(180deg, var(--primary), var(--primary-700)); border: none; color: #fff; }
+    .btn-accent { background: linear-gradient(180deg, var(--accent), #be185d); border: none; color: #fff; }
+    .btn-danger { background: linear-gradient(180deg, var(--danger), #be123c); border: none; color: #fff; }
+    .btn-warning { background: linear-gradient(180deg, var(--warning), #b45309); border: none; color: #fff; }
+
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 6px }
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 999px; border: 1px solid rgba(148,163,184,.2); background: rgba(15, 23, 42, 0.8); font-size: 10px; margin-left: auto; backdrop-filter: blur(4px); }
+
+    .video-wrap { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(148,163,184,.15); background: #030712 }
+    video, canvas { width: 100%; height: auto; display: block }
+    .overlay { position:absolute; inset:0; pointer-events:none }
+
+    .table { width: 100%; border-collapse: collapse; font-size: 14px; background: rgba(15, 23, 42, 0.3); border-radius: 8px; overflow: hidden; }
+    .table th, .table td { border-bottom: 1px dashed rgba(148,163,184,.15); padding: 10px; text-align: left }
+    .table th { background: rgba(30, 41, 59, 0.5); }
+    .chip { display:inline-block; padding: 4px 8px; border-radius: 999px; background: rgba(51, 65, 85, 0.7); border: 1px solid rgba(148,163,184,.2); font-size: 12px }
+
+    .footer { margin: 24px 0; font-size: 12px; color: var(--muted) }
+    .hide { display: none }
+    .success { color: #4ade80 }
+    .warn { color: #facc15 }
+    .error { color: #f43f5e }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <div class="brand">
+      <div class="logo">S</div>
+      <div>
+        <h1>SARMS — Smart Attendance & Resource Management</h1>
+        <div class="muted">Low-cost Android-friendly web app with offline-first facial recognition and analytics.</div>
+      </div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="attendance">Attendance</button>
+      <button class="tab-btn" data-tab="roster">Face Enrollment</button>
+      <button class="tab-btn" data-tab="sync">Sync</button>
+      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <span class="pill" id="online-indicator">Offline ready</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Attendance -->
+  <section id="tab-attendance" class="grid grid-2">
+    <div class="card">
+      <h3>Mark Attendance — Facial Recognition</h3>
+      <div class="muted">Uses on-device ML via face-api.js. Works offline after first load of models. If camera is blocked due to file:// restrictions, serve via a local HTTP server.</div>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <div class="label">Class / Section</div>
+          <select id="att-class"></select>
+        </div>
+        <div style="max-width: 220px">
+          <div class="label">Session</div>
+          <select id="att-session">
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+          </select>
+        </div>
+        <div style="max-width: 220px">
+          <div class="label">Date</div>
+          <input type="date" id="att-date" />
+        </div>
+      </div>
+
+      <div class="video-wrap" style="margin-top:12px">
+        <video id="att-video" autoplay muted playsinline></video>
+        <canvas id="att-canvas" class="overlay"></canvas>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btn-start-camera">Start Camera</button>
+        <button class="btn" id="btn-start-detect">Start Recognition</button>
+        <button class="btn-warning" id="btn-stop-detect">Stop</button>
+      </div>
+      <div class="muted" id="att-status" style="margin-top:6px"></div>
+      <div class="muted" id="live-status" style="margin-top:6px"></div>
+      <div class="muted" id="att-debug-match" style="margin-top:4px; font-size: 10px;"></div>
+
+      
+
+    </div>
+
+    <div class="card">
+      <h3>Recognized / Present</h3>
+      <div id="present-list" class="muted">No one yet</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn-primary" id="btn-save-att">Save Attendance</button>
+        <button class="btn-danger" id="btn-clear-present">Clear</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Saved records are stored offline and can be synced later.</div>
+    </div>
+  </section>
+
+  <!-- Roster & Enrollment -->
+  <section id="tab-roster" class="grid grid-2 hide">
+    <div class="card">
+      <h3>Face Enrollment</h3>
+      <div class="row">
+        <div>
+          <div class="label">Student ID</div>
+          <input id="enroll-id" placeholder="e.g., STU001" />
+        </div>
+        <div>
+          <div class="label">Name</div>
+          <input id="enroll-name" placeholder="e.g., Asha Devi" />
+        </div>
+        <div>
+          <div class="label">Class / Section</div>
+          <input id="enroll-class" placeholder="e.g., 6-A" />
+        </div>
+      </div>
+      <div class="video-wrap" style="margin-top:10px">
+        <video id="enroll-video" autoplay muted playsinline></video>
+        <canvas id="enroll-canvas" class="overlay"></canvas>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btn-enroll-start">Start Camera</button>
+        <button class="btn" id="btn-enroll-snap">Add Snapshot</button>
+        <button class="btn-accent" id="btn-upload-face">Upload Face Image</button>
+        <input type="file" id="face-upload" accept="image/*" multiple class="hide" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn-warning" id="btn-enroll-clear">Clear Snapshots</button>
+        <button class="btn-primary" id="btn-enroll-save">Save Student</button>
+      </div>
+      <div class="muted" id="enroll-status" style="margin-top:6px"></div>
+      <div id="enroll-previews" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap"></div>
+      <div class="muted" style="margin-top:6px">Tip: Add 3–5 snapshots at slightly different angles for better accuracy.</div>
+    </div>
+
+    <div class="card">
+      <h3>Students</h3>
+      <div class="row" style="margin-bottom:8px">
+        <input id="roster-search" placeholder="Search by name or ID" />
+        <select id="roster-class"></select>
+        <button class="btn" id="btn-export-roster">Export Roster JSON</button>
+        <input type="file" id="import-roster" accept="application/json" class="hide" />
+        <button class="btn" id="btn-import-roster">Import Roster</button>
+      </div>
+      <div style="max-height: 420px; overflow:auto">
+        <table class="table" id="students-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Class</th><th>Vectors</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sync -->
+  <section id="tab-sync" class="grid hide">
+    <div class="card">
+      <h3>Offline Sync</h3>
+      <div class="muted">Attendance data is stored locally and can be synced when online. Configure the endpoint below or export JSON.</div>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <div class="label">Cloud Endpoint (POST)</div>
+          <input id="sync-endpoint" placeholder="https://api.example.gov/sarms/attendance" />
+        </div>
+        <div style="max-width:240px">
+          <div class="label">API Key (optional)</div>
+          <input id="sync-apikey" placeholder="key..." />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn-primary" id="btn-sync">Sync Now</button>
+        <button class="btn" id="btn-export-att">Export Unsynced Excel</button>
+        <button class="btn-warning" id="btn-mark-synced">Mark All as Synced</button>
+      </div>
+      <div class="muted" id="sync-status" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Pending Records</h3>
+      <div id="pending-list" class="muted">No pending records</div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="tab-dashboard" class="grid grid-2 hide">
+    <div class="card">
+      <h3>Attendance Trends</h3>
+      <canvas id="chart-attendance" height="160"></canvas>
+    </div>
+    <div class="card">
+      <h3>Teacher Performance & Analytics</h3>
+      <div id="perf-metrics" class="muted">No data yet</div>
+    </div>
+        <div class="card">
+      <h3>Predictive Risk (Simple)</h3>
+      <div id="predictive" class="muted">No risk flagged</div>
+    </div>
+    <div class="card">
+      <h3>Mid-Day Meal Analytics</h3>
+      <div class="row" style="margin-bottom:8px">
+        <div style="max-width:220px">
+          <div class="label">Month</div>
+          <input type="month" id="mdm-month" />
+        </div>
+        <div style="max-width:220px">
+          <div class="label">Assumed School Days (optional)</div>
+          <input type="number" id="mdm-days" min="1" max="31" placeholder="auto" />
+        </div>
+        <button class="btn" id="btn-export-mdm">Export CSV</button>
+      </div>
+      <div id="mdm-summary" class="muted">No data yet</div>
+      <div style="max-height: 320px; overflow:auto; margin-top:8px">
+        <table class="table" id="mdm-table">
+          <thead>
+            <tr><th>Class</th><th>Total Meals</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Note: Camera access may require serving this page over http:// or https://. On desktop, run a simple server (e.g., Python: python -m http.server). On Android, use any local web server app. Models and libraries are cached after first use for offline operation.</div>
+</main>
+
+<!-- External libraries from CDN (cached after first load) -->
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/face_detection.js"></script>
+
+<script>
+(function(){
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const byId = (id) => document.getElementById(id);
+
+  const state = {
+    detecting: false,
+    presentSet: new Set(),
+    presentMap: new Map(), // id -> {id, name, class}
+    enrolSnaps: [],
+    enrolImages: [],
+    faceMatcher: null,
+    classOptions: new Set(),
+    attStartTime: null,
+    lastMatchTs: 0,
+    matchIntervalMs: 350 // Run face matching more frequently
+  };
+
+  // PWA Service Worker registration
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+    });
+  }
+
+  // Tabs
+  $$('#tabs .tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  function switchTab(id){
+    $$('#tabs .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+    ['attendance','roster','sync','dashboard'].forEach(t => {
+      byId('tab-'+t).classList.toggle('hide', t!==id);
+    });
+    if(id==='dashboard'){ renderDashboard(); }
+    if(id==='sync'){ refreshPending(); }
+    if(id==='roster'){ loadStudentsTable(); refreshClassFilters(); }
+  }
+
+  // Online indicator
+  function setOnlineStatus(){
+    const el = byId('online-indicator');
+    if(navigator.onLine){ el.innerHTML = 'Online'; el.style.borderColor = 'rgba(34,197,94,.6)'; }
+    else { el.innerHTML = 'Offline ready'; el.style.borderColor = 'rgba(245,158,11,.6)'; }
+  }
+  window.addEventListener('online', setOnlineStatus);
+  window.addEventListener('offline', setOnlineStatus);
+  setOnlineStatus();
+
+  // IndexedDB wrapper
+  const DB_NAME='sarms';
+  const DB_VER=1;
+  let db;
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = (e)=>{
+        const db=e.target.result;
+        if(!db.objectStoreNames.contains('students')){
+          const s=db.createObjectStore('students', { keyPath: 'id' });
+          s.createIndex('byClass','class');
+          s.createIndex('byName','name');
+        }
+        if(!db.objectStoreNames.contains('attendance')){
+          const a=db.createObjectStore('attendance', { keyPath: 'uid', autoIncrement: false });
+          a.createIndex('byDate','date');
+          a.createIndex('byClass','class');
+          a.createIndex('synced','synced');
+        }
+        if(!db.objectStoreNames.contains('meta')){
+          db.createObjectStore('meta', { keyPath: 'key' });
+        }
+      };
+      req.onsuccess=()=>{db=req.result;resolve(db)};
+      req.onerror=()=>reject(req.error);
+    });
+  }
+  function tx(store, mode='readonly'){ return db.transaction(store, mode).objectStore(store); }
+  function put(store, val){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').put(val); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+  function add(store, val){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').add(val); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+  function get(store, key){ return new Promise((res,rej)=>{ const r=tx(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+  function getAll(store){ return new Promise((res,rej)=>{ const r=tx(store).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error); }); }
+  function del(store, key){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').delete(key); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+  async function listByIndex(store, index, query){ return new Promise((res,rej)=>{ const idx=tx(store).index(index); const req=idx.getAll(query); req.onsuccess=()=>res(req.result||[]); req.onerror=()=>rej(req.error); }); }
+
+  // Utility
+  const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+  const todayStr = ()=> new Date().toISOString().slice(0,10);
+  const uid = (prefix='') => prefix + Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+  // Populate class filters
+  async function refreshClassFilters(){
+    const all = await getAll('students');
+    const classes = Array.from(new Set(all.map(s=>s.class))).filter(Boolean).sort();
+    const sel1 = byId('att-class');
+    const sel2 = byId('roster-class');
+    function fill(sel){ sel.innerHTML = '<option value="">All</option>' + classes.map(c=>`<option>${c}</option>`).join(''); }
+    fill(sel1); fill(sel2);
+  }
+
+  // Load students table
+  async function loadStudentsTable(){
+    const q = byId('roster-search').value.toLowerCase();
+    const cls = byId('roster-class').value;
+    const all = await getAll('students');
+    const filtered = all.filter(s=>
+      (!q || (s.id.toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q))) &&
+      (!cls || s.class===cls)
+    ).sort((a,b)=> (a.class||'').localeCompare(b.class||'') || (a.name||'').localeCompare(b.name||''));
+    const tbody = byId('students-table').querySelector('tbody');
+    tbody.innerHTML = filtered.map(s=>`
+      <tr>
+        <td><span class="chip">${s.id}</span></td>
+        <td>${s.name||'-'}</td>
+        <td>${s.class||'-'}</td>
+        <td>${(s.descriptors||[]).length}</td>
+        <td class="row" style="gap:6px">
+          <button class="btn" data-action="export" data-id="${s.id}">Export</button>
+          <button class="btn-danger" data-action="delete" data-id="${s.id}">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+    tbody.querySelectorAll('button').forEach(btn=>btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id; const action = btn.dataset.action;
+      if(action==='delete'){
+        if(confirm('Delete student '+id+'?')){ await del('students', id); await loadStudentsTable(); await buildFaceMatcher(); refreshClassFilters(); }
+      } else if(action==='export'){
+        const s = await get('students', id); downloadJSON([s], `student_${id}.json`);
+      }
+    }));
+  }
+  byId('roster-search').addEventListener('input', loadStudentsTable);
+  byId('roster-class').addEventListener('change', loadStudentsTable);
+
+  // Downloads
+  function downloadJSON(obj, name){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)], {type:'application/json'}));
+    a.download = name; a.click(); URL.revokeObjectURL(a.href);
+  }
+  function downloadCSV(rows, name){
+    const esc = (v)=> '"'+String(v??'').replace(/"/g,'""')+'"';
+    const csv = rows.map(r=> r.map(esc).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = name; a.click(); URL.revokeObjectURL(a.href);
+  }
+  // Convert attendance records to flat row objects (one row per present student)
+  function attendanceToRowObjects(records){
+    const rows = [];
+    for(const r of (records||[])){
+      const base = {
+        Date: r.date || '',
+        Class: r.class || 'Unassigned',
+        Session: r.session || '',
+      };
+      const present = Array.isArray(r.present) ? r.present : [];
+      if(present.length === 0){
+        rows.push({ ...base, StudentID: '', Name: '' });
+      } else {
+        for(const p of present){ rows.push({ ...base, StudentID: p.id || '', Name: p.name || '' }); }
+      }
+    }
+    return rows;
+  }
+  // Download rows as an Excel .xlsx file
+  function downloadXLSX(rows, filename){
+    try{
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(rows || []);
+      XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename || 'attendance.xlsx';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch(e){
+      alert('Failed to generate Excel: ' + (e?.message || e));
+    }
+  }
+
+  // Camera helpers
+  async function startCamera(videoEl, facing='user'){
+    if(!navigator.mediaDevices?.getUserMedia) throw new Error('Camera not supported in this context. Serve over http/https.');
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 640 } }, audio:false });
+    videoEl.srcObject = stream; await videoEl.play(); return stream;
+  }
+  function stopCamera(videoEl){ const s=videoEl.srcObject; if(s){ s.getTracks().forEach(t=>t.stop()); videoEl.srcObject=null; } }
+
+  // Face models - Simplified and reliable
+  const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+  let modelsLoaded = false;
+  
+  async function loadModels(){
+    if(modelsLoaded) return;
+    byId('att-status').textContent = 'Loading face detection models...';
+    try {
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      ]);
+      modelsLoaded = true;
+      byId('att-status').innerHTML = 'Face detection models loaded successfully';
+    } catch(e) {
+      byId('att-status').innerHTML = '<span class="error">Failed to load models: ' + e.message + '</span>';
+      throw e;
+    }
+  }
+
+  // Enhanced face detection with better error handling
+  async function detectFaceSimple(input){
+    try {
+      // Ensure models are loaded
+      if(!modelsLoaded) {
+        console.log('Models not loaded, loading now...');
+        await loadModels();
+      }
+      
+      const options = new faceapi.TinyFaceDetectorOptions({ 
+        inputSize: 416, 
+        scoreThreshold: 0.3 
+      });
+      
+      console.log('Starting face detection...');
+      const result = await faceapi.detectSingleFace(input, options).withFaceLandmarks().withFaceDescriptor();
+      
+      if(result && result.descriptor) {
+        console.log('Face detected successfully, descriptor length:', result.descriptor.length);
+        return result;
+      } else {
+        console.log('No face detected in image');
+        return null;
+      }
+    } catch(e) {
+      console.error('Face detection error:', e);
+      return null;
+    }
+  }
+
+  // Build face matcher from roster with better error handling
+  async function buildFaceMatcher(){
+    try {
+      const students = await getAll('students');
+      const labeled = [];
+      
+      for(const s of students){
+        if(s.descriptors && s.descriptors.length > 0) {
+          try {
+            const descriptors = s.descriptors.map(d => {
+              // Handle both array and Float32Array formats
+              if(d instanceof Float32Array) return d;
+              if(Array.isArray(d)) return new Float32Array(d);
+              if(typeof d === 'object' && d.length) return new Float32Array(Object.values(d));
+              return null;
+            }).filter(Boolean);
+            
+            if(descriptors.length > 0) {
+              labeled.push(new faceapi.LabeledFaceDescriptors(`${s.id}|${s.name||''}|${s.class||''}`, descriptors));
+              console.log(`Added ${descriptors.length} descriptors for student ${s.id}`);
+            }
+          } catch(e) {
+            console.error(`Error processing descriptors for student ${s.id}:`, e);
+          }
+        }
+      }
+      
+      state.faceMatcher = labeled.length ? new faceapi.FaceMatcher(labeled, 0.55) : null; // Loosened threshold
+      console.log(`Face matcher built with ${labeled.length} students`);
+    } catch(e) {
+      console.error('Error building face matcher:', e);
+      state.faceMatcher = null;
+    }
+  }
+
+  // Draw helpers
+  function fitCanvasToVideo(canvas, video){ canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
+  
+  // Scale a canvas to a maximum dimension to avoid huge memory usage
+  function scaleCanvas(srcCanvas, maxDim = 720){
+    const sw = srcCanvas.width, sh = srcCanvas.height;
+    if(!sw || !sh) return srcCanvas;
+    const scale = Math.min(1, maxDim / Math.max(sw, sh));
+    if(scale === 1) return srcCanvas;
+    const dst = document.createElement('canvas');
+    dst.width = Math.round(sw * scale);
+    dst.height = Math.round(sh * scale);
+    const dctx = dst.getContext('2d');
+    dctx.drawImage(srcCanvas, 0, 0, dst.width, dst.height);
+    return dst;
+  }
+
+  function canvasToJpegDataURL(canvas, quality = 0.85){
+    try{ return canvas.toDataURL('image/jpeg', quality); }
+    catch(e){ console.error('toDataURL failed:', e); return null; }
+  }
+
+  // Ensure video has metadata ready (dimensions > 0)
+  async function ensureVideoReady(video){
+    if(video.videoWidth > 0 && video.videoHeight > 0) return;
+    await new Promise((resolve) => {
+      const onMeta = () => { video.removeEventListener('loadedmetadata', onMeta); resolve(); };
+      video.addEventListener('loadedmetadata', onMeta);
+      // Fallback timeout just in case
+      setTimeout(resolve, 600);
+    });
+  }
+
+  // Grab a frame from the video into a new canvas (offscreen)
+  function getVideoFrameCanvas(video){
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 480;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    return c;
+  }
+
+  // Liveness detection (blink + micro motion)
+  const LIVENESS_WINDOW_MS = 6000;
+  const BLINK_EAR_THRESHOLD = 0.25; // More forgiving
+  const BLINK_MIN_FRAMES = 1; // More forgiving
+  const MOTION_MIN_PIXELS = 5; // More forgiving
+  const liveness = { lastNose:null, lastBlinkTs:0, consecBelow:0, blinkedTs:0, movedTs:0 };
+
+  function dist(a, b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
+
+  function eyeAspectRatio(eye){
+    // eye: array of 6 points: [p1..p6] from 68-landmarks
+    if(!eye || eye.length<6) return 1;
+    const p1=eye[0], p2=eye[1], p3=eye[2], p4=eye[3], p5=eye[4], p6=eye[5];
+    const vert = dist(p2,p6) + dist(p3,p5);
+    const horiz = dist(p1,p4) || 1;
+    return vert / (2*horiz);
+  }
+
+  function noseTip(landmarks){
+    try{
+      const nose = landmarks.getNose();
+      if(nose && nose.length){
+        const tip = nose[Math.floor(nose.length/2)];
+        return { x: tip.x, y: tip.y };
+      }
+    }catch(e){ }
+    return null;
+  }
+
+  function updateLiveness(landmarks){
+    if(!landmarks) return false;
+    // Blink detection
+    let blinkNow = false;
+    try{
+      const left = landmarks.getLeftEye();
+      const right = landmarks.getRightEye();
+      const ear = (eyeAspectRatio(left) + eyeAspectRatio(right)) / 2;
+      if(ear < BLINK_EAR_THRESHOLD){ liveness.consecBelow++; }
+      else {
+        if(liveness.consecBelow >= BLINK_MIN_FRAMES){ liveness.blinkedTs = Date.now(); }
+        liveness.consecBelow = 0;
+      }
+      blinkNow = Date.now() - liveness.blinkedTs < LIVENESS_WINDOW_MS;
+    }catch(e){}
+
+    // Motion detection (nose displacement)
+    let moved = false;
+    const tip = noseTip(landmarks);
+    if(tip){
+      if(liveness.lastNose){
+        const d = dist(tip, liveness.lastNose);
+        if(d >= MOTION_MIN_PIXELS){ liveness.movedTs = Date.now(); }
+      }
+      liveness.lastNose = tip;
+    }
+    moved = Date.now() - liveness.movedTs < LIVENESS_WINDOW_MS;
+
+    const ok = blinkNow && moved;
+    const el = document.getElementById('live-status');
+    if(el){
+      el.innerHTML = ok
+        ? '<span class="success">Liveness OK: recent blink and motion detected</span>'
+        : '<span class="warn">Show liveness: blink and move head slightly</span>';
+    }
+    return ok;
+  }
+  
+
+  // Attendance recognition loop
+  let recognitionInterval = null;
+
+  byId('btn-start-detect').addEventListener('click', async ()=>{
+    if(state.detecting) return;
+    state.detecting = true;
+    if(recognitionInterval) clearInterval(recognitionInterval);
+    recognitionInterval = setInterval(recognitionLoop, state.matchIntervalMs);
+    byId('att-video').style.borderColor = 'var(--primary)';
+  });
+
+  byId('btn-stop-detect').addEventListener('click', ()=>{
+    state.detecting = false;
+    if(recognitionInterval) clearInterval(recognitionInterval);
+    byId('att-status').textContent='Stopped';
+    byId('att-video').style.borderColor = 'transparent';
+    const canvas = byId('att-canvas');
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  });
+
+  async function recognitionLoop() {
+    const video = byId('att-video');
+    const canvas = byId('att-canvas');
+    if (!state.detecting || !video.srcObject) return;
+
+    fitCanvasToVideo(canvas, video);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptors();
+
+    let matchedCount = 0;
+    for (const det of detections) {
+      const liveOk = updateLiveness(det.landmarks);
+      let label = 'Unknown';
+      let matched = null;
+
+      if (state.faceMatcher) {
+        const bestMatch = state.faceMatcher.findBestMatch(det.descriptor);
+        if (bestMatch && bestMatch.label && !bestMatch.label.includes('unknown')) {
+          label = bestMatch.label.split('|')[0];
+          matched = bestMatch;
+        }
+      }
+
+      const box = det.detection.box;
+      ctx.strokeStyle = matched ? (liveOk ? '#22c55e' : '#f59e0b') : '#ef4444';
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      ctx.fillText(label, box.x + 4, box.y - 4);
+
+      if (matched && liveOk) {
+        matchedCount++;
+        const [id, name, cls] = matched.label.split('|');
+        addPresent({ id, name, class: cls });
+      }
+    }
+    byId('att-status').innerHTML = `Detected: ${detections.length}, Present: ${state.presentSet.size}`;
+  }
+
+  function addPresent(s){
+    if(!s?.id) return;
+    state.presentSet.add(s.id); state.presentMap.set(s.id, s);
+    renderPresent();
+  }
+  function removePresent(id){ state.presentSet.delete(id); state.presentMap.delete(id); renderPresent(); }
+  function renderPresent(){
+    const list = byId('present-list');
+    if(state.presentSet.size===0){ list.textContent='No one yet'; return; }
+    const arr = Array.from(state.presentSet).map(id=> state.presentMap.get(id)).filter(Boolean).sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+    list.innerHTML = `<table class="table"><thead><tr><th>ID</th><th>Name</th><th>Class</th><th></th></tr></thead><tbody>`+
+      arr.map(s=>`<tr><td>${s.id}</td><td>${s.name||'-'}</td><td>${s.class||'-'}</td><td><button class=\"btn-danger\" data-remove=\"${s.id}\">Remove</button></td></tr>`).join('')+
+      `</tbody></table>`;
+    list.querySelectorAll('[data-remove]').forEach(btn=> btn.addEventListener('click', ()=> removePresent(btn.dataset.remove)));
+  }
+
+  // Save attendance
+  byId('btn-save-att').addEventListener('click', async ()=>{
+    const cls = byId('att-class').value || 'Unassigned';
+    const date = byId('att-date').value || todayStr();
+    const session = byId('att-session').value || 'morning';
+    const present = Array.from(state.presentSet);
+    if(present.length===0){ alert('No recognized or scanned students to save.'); return; }
+
+    const students = await getAll('students');
+    const presentDetails = present.map(id=> students.find(s=>s.id===id) || state.presentMap.get(id) || {id});
+
+    const started = state.attStartTime || Date.now();
+    const durationSec = Math.max(1, Math.round((Date.now()-started)/1000));
+
+    const record = {
+      uid: uid('att_'),
+      date, session, class: cls,
+      present: presentDetails.map(s=>({ id: s.id, name: s.name||'', class: s.class||cls })),
+      count: presentDetails.length,
+      by: 'teacher-app',
+      startedAt: started,
+      durationSec,
+      synced: false,
+      ts: Date.now()
+    };
+    await put('attendance', record);
+    state.presentSet.clear(); state.presentMap.clear(); renderPresent();
+    byId('att-status').innerHTML = `<span class=\"success\">Saved attendance for ${cls} (${date}, ${session}) — ${record.count} present</span>`;
+    refreshPending();
+  });
+
+  byId('btn-clear-present').addEventListener('click', ()=>{ state.presentSet.clear(); state.presentMap.clear(); renderPresent(); });
+
+  // Attendance controls
+  byId('btn-start-camera').addEventListener('click', async ()=>{
+    try{ await startCamera(byId('att-video'),'environment'); byId('att-status').textContent='Camera ready'; fitCanvasToVideo(byId('att-canvas'), byId('att-video')); state.attStartTime=Date.now(); } catch(e){ byId('att-status').innerHTML='<span class=\"error\">'+e.message+'</span>'; }
+  });
+  byId('btn-start-detect').addEventListener('click', async ()=>{
+    if(!faceapi?.nets?.faceRecognitionNet?.params){ await loadModels(); }
+    if(!state.faceMatcher){ await buildFaceMatcher(); }
+    state.detecting = true; detectLoop();
+  });
+  byId('btn-stop-detect').addEventListener('click', ()=>{ state.detecting=false; if(detectRAF) cancelAnimationFrame(detectRAF); byId('att-status').textContent='Stopped'; });
+
+
+  // Enrolment camera
+  byId('btn-enroll-start').addEventListener('click', async ()=>{
+    try{ 
+      const video = byId('enroll-video');
+      await startCamera(video,'user'); 
+      await ensureVideoReady(video);
+      fitCanvasToVideo(byId('enroll-canvas'), video); 
+      byId('enroll-status').textContent='Camera ready';
+    }
+    catch(e){ byId('enroll-status').innerHTML = '<span class=\"error\">'+e.message+'</span>'; }
+  });
+
+  function renderEnrolPreviews(images=[]){
+    const wrap = byId('enroll-previews');
+    if(!wrap) return;
+    if(!images || images.length===0){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = images.map((src,i)=>`<img src="${src}" alt="snap ${i+1}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid rgba(148,163,184,.2)">`).join('');
+  }
+  byId('enroll-id').addEventListener('input', async ()=>{
+    const id = byId('enroll-id').value.trim();
+    if(!id){ renderEnrolPreviews(state.enrolImages); return; }
+    const stu = await get('students', id);
+    renderEnrolPreviews(stu?.images || []);
+  });
+
+  byId('btn-enroll-snap').addEventListener('click', async ()=>{
+    try{
+      // Load models if not already loaded
+      if(!faceapi?.nets?.faceRecognitionNet?.params){ 
+        byId('enroll-status').innerHTML = 'Loading face recognition models...';
+        await loadModels(); 
+      }
+      
+      const video = byId('enroll-video'); 
+      if(!video.srcObject){ 
+        alert('Please start camera first by clicking "Start Camera"'); 
+        return; 
+      }
+      
+      // Ensure video is ready
+      if(video.videoWidth === 0 || video.videoHeight === 0){
+        byId('enroll-status').innerHTML = '<span class="warn">Camera not ready. Please wait a moment and try again.</span>';
+        return;
+      }
+      
+      byId('enroll-status').innerHTML = 'Capturing snapshot...';
+      
+      const overlayCanvas = byId('enroll-canvas');
+      await ensureVideoReady(video);
+      fitCanvasToVideo(overlayCanvas, video);
+      
+      // Use offscreen canvas to capture actual frame
+      const frameCanvas = getVideoFrameCanvas(video);
+      
+      // Scale and convert to image data URL for storage
+      const scaled = scaleCanvas(frameCanvas, 720);
+      const imgDataUrl = canvasToJpegDataURL(scaled, 0.85);
+      if(!imgDataUrl){
+        byId('enroll-status').innerHTML = '<span class="error">Failed to encode snapshot. Try again.</span>';
+        return;
+      }
+      
+      // Try to detect face and extract descriptor on scaled canvas
+      const det = await detectFaceSimple(scaled);
+      
+      const id = byId('enroll-id').value.trim();
+      const name = byId('enroll-name').value.trim();
+      const cls = byId('enroll-class').value.trim();
+      
+      if(det){
+        // Face detected successfully
+        const desc = Array.from(det.descriptor);
+        
+        if(id && name && cls){
+          // Save immediately to database if all fields are filled
+          const existing = await get('students', id) || { id, name, class: cls, descriptors: [], images: [] };
+          existing.name = name;
+          existing.class = cls;
+          existing.descriptors = (existing.descriptors || []);
+          existing.images = (existing.images || []);
+          existing.descriptors.push(desc);
+          existing.images.push(imgDataUrl);
+          
+          await put('students', existing);
+          await buildFaceMatcher();
+          await loadStudentsTable();
+          renderEnrolPreviews(existing.images);
+          
+          byId('enroll-status').innerHTML = `<span class="success">✓ Snapshot ${existing.images.length} captured and saved for ${name} (${existing.descriptors.length} face vectors total)</span>`;
+        } else {
+          // Store temporarily if fields not complete
+          state.enrolSnaps.push(desc);
+          state.enrolImages.push(imgDataUrl);
+          renderEnrolPreviews(state.enrolImages);
+          byId('enroll-status').innerHTML = `<span class="success">✓ Snapshot ${state.enrolImages.length} captured with face data. Fill all fields and click "Save Student" to persist.</span>`;
+        }
+      } else {
+        // No face detected, but still save the image
+        if(id && name && cls){
+          const existing = await get('students', id) || { id, name, class: cls, descriptors: [], images: [] };
+          existing.name = name;
+          existing.class = cls;
+          existing.images = (existing.images || []);
+          existing.images.push(imgDataUrl);
+          
+          await put('students', existing);
+          renderEnrolPreviews(existing.images);
+          byId('enroll-status').innerHTML = `<span class="warn">⚠ Snapshot captured but no face detected. Image saved. Try better lighting or positioning.</span>`;
+        } else {
+          state.enrolImages.push(imgDataUrl);
+          renderEnrolPreviews(state.enrolImages);
+          byId('enroll-status').innerHTML = `<span class="warn">⚠ Snapshot captured but no face detected. Improve lighting/positioning and try again.</span>`;
+        }
+      }
+      
+      // Brief visual feedback
+      overlayCanvas.style.border = '3px solid #22c55e';
+      setTimeout(() => { overlayCanvas.style.border = ''; }, 300);
+      
+    }catch(e){
+      console.error('Snapshot error:', e);
+      byId('enroll-status').innerHTML = `<span class="error">Error capturing snapshot: ${e.message}</span>`;
+    }
+  });
+
+  byId('btn-enroll-clear').addEventListener('click', ()=>{ state.enrolSnaps = []; state.enrolImages = []; renderEnrolPreviews([]); byId('enroll-status').textContent='Cleared'; });
+
+  byId('btn-enroll-save').addEventListener('click', async ()=>{
+    const id = byId('enroll-id').value.trim();
+    const name = byId('enroll-name').value.trim();
+    const cls = byId('enroll-class').value.trim();
+    if(!id || !name || !cls){ alert('Fill ID, Name, and Class'); return; }
+    let stu = await get('students', id) || { id, name, class: cls, descriptors: [], images: [] };
+    stu.name = name; stu.class = cls;
+    stu.descriptors = (stu.descriptors||[]).concat(state.enrolSnaps||[]);
+    stu.images = (stu.images||[]).concat(state.enrolImages||[]);
+    if(stu.descriptors.length<1){ if(!confirm('No face vectors captured. Save anyway?')) return; }
+    await put('students', stu);
+    state.enrolSnaps = []; state.enrolImages = []; renderEnrolPreviews([]);
+    byId('enroll-status').innerHTML = `<span class=\"success\">Saved ${name} (${id}) with ${stu.descriptors.length} vectors</span>`;
+    await buildFaceMatcher(); await loadStudentsTable(); await refreshClassFilters();
+  });
+
+  // Face image upload functionality
+  byId('btn-upload-face').addEventListener('click', ()=> byId('face-upload').click());
+  byId('face-upload').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    if(files.length === 0) return;
+    
+    // Load models if not already loaded
+    if(!faceapi?.nets?.faceRecognitionNet?.params){ 
+      byId('enroll-status').innerHTML = 'Loading face recognition models...';
+      await loadModels(); 
+    }
+    
+    byId('enroll-status').innerHTML = `Processing ${files.length} image(s)...`;
+    
+    let processedCount = 0;
+    let successCount = 0;
+    
+    for(const file of files) {
+      try {
+        // Create image element
+        const img = new Image();
+        const imgDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        // Load image
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = imgDataUrl;
+        });
+        
+        // Create canvas and draw image
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // Scale and encode processed image
+        const scaled = scaleCanvas(canvas, 1024);
+        const processedDataUrl = canvasToJpegDataURL(scaled, 0.85);
+        if(!processedDataUrl){
+          console.warn('Failed to encode uploaded image, skipping');
+          continue;
+        }
+        
+        // Try to detect face on scaled image
+        const det = await detectFaceSimple(scaled);
+        
+        const id = byId('enroll-id').value.trim();
+        const name = byId('enroll-name').value.trim();
+        const cls = byId('enroll-class').value.trim();
+        
+        if(det) {
+          // Face detected successfully
+          const desc = Array.from(det.descriptor);
+          
+          if(id && name && cls) {
+            // Save immediately to database if all fields are filled
+            const existing = await get('students', id) || { id, name, class: cls, descriptors: [], images: [] };
+            existing.name = name;
+            existing.class = cls;
+            existing.descriptors = (existing.descriptors || []);
+            existing.images = (existing.images || []);
+            existing.descriptors.push(desc);
+            existing.images.push(processedDataUrl);
+            
+            await put('students', existing);
+            await buildFaceMatcher();
+            await loadStudentsTable();
+            renderEnrolPreviews(existing.images);
+            successCount++;
+          } else {
+            // Store temporarily if fields not complete
+            state.enrolSnaps.push(desc);
+            state.enrolImages.push(processedDataUrl);
+            renderEnrolPreviews(state.enrolImages);
+            successCount++;
+          }
+        } else {
+          // No face detected, but still save the image
+          if(id && name && cls) {
+            const existing = await get('students', id) || { id, name, class: cls, descriptors: [], images: [] };
+            existing.name = name;
+            existing.class = cls;
+            existing.images = (existing.images || []);
+            existing.images.push(processedDataUrl);
+            
+            await put('students', existing);
+            renderEnrolPreviews(existing.images);
+          } else {
+            state.enrolImages.push(processedDataUrl);
+            renderEnrolPreviews(state.enrolImages);
+          }
+        }
+        
+        processedCount++;
+        
+      } catch(error) {
+        console.error('Error processing image:', file.name, error);
+        processedCount++;
+      }
+    }
+    
+    // Clear file input
+    e.target.value = '';
+    
+    // Show final status
+    if(successCount === files.length) {
+      byId('enroll-status').innerHTML = `<span class="success">✓ Successfully processed ${successCount} image(s) with face detection</span>`;
+    } else if(successCount > 0) {
+      byId('enroll-status').innerHTML = `<span class="warn">⚠ Processed ${processedCount} image(s), ${successCount} with face detection</span>`;
+    } else {
+      byId('enroll-status').innerHTML = `<span class="warn">⚠ Processed ${processedCount} image(s), but no faces detected. Images saved for manual review.</span>`;
+    }
+  });
+
+  // Roster import/export
+  byId('btn-export-roster').addEventListener('click', async ()=>{ const all = await getAll('students'); downloadJSON(all, 'roster.json'); });
+  byId('btn-import-roster').addEventListener('click', ()=> byId('import-roster').click());
+  byId('import-roster').addEventListener('change', async (e)=>{
+    const file = e.target.files?.[0]; if(!file) return;
+    const text = await file.text();
+    try{
+      const list = JSON.parse(text); if(!Array.isArray(list)) throw new Error('JSON must be an array');
+      for(const s of list){ if(s?.id) await put('students', s); }
+      await buildFaceMatcher(); await loadStudentsTable(); await refreshClassFilters(); alert('Imported '+list.length+' students');
+    }catch(err){ alert('Import failed: '+err.message); }
+  });
+
+  // Sync & Pending
+  async function getPending(){
+    const all = await getAll('attendance');
+    return all.filter(r=>!r.synced);
+  }
+  async function refreshPending(){
+    const pend = await getPending();
+    const el = byId('pending-list');
+    if(pend.length===0){ el.textContent='No pending records'; }
+    else {
+      el.innerHTML = '<table class="table"><thead><tr><th>Date</th><th>Class</th><th>Session</th><th>Count</th><th>Duration(s)</th><th>Actions</th></tr></thead><tbody>'+
+        pend.sort((a,b)=>a.date.localeCompare(b.date)).map(p=>`<tr>
+          <td>${p.date}</td><td>${p.class}</td><td>${p.session}</td><td>${p.count}</td><td>${p.durationSec}</td>
+          <td><button class=\"btn\" data-exp=\"${p.uid}\">Export Excel</button> <button class=\"btn-warning\" data-del=\"${p.uid}\">Delete</button></td>
+        </tr>`).join('')+
+        '</tbody></table>';
+      el.querySelectorAll('[data-exp]').forEach(b=>b.addEventListener('click', async ()=>{
+        const rec = (await getAll('attendance')).find(x=>x.uid===b.dataset.exp);
+        const rows = attendanceToRowObjects([rec]);
+        downloadXLSX(rows, `attendance_${(rec.class||'Unassigned')}_${rec.date}.xlsx`);
+      }));
+      el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', async ()=>{
+        if(confirm('Delete this record?')){ await del('attendance', b.dataset.del); refreshPending(); }
+      }));
+    }
+  }
+
+  byId('btn-sync').addEventListener('click', async ()=>{
+    const endpoint = byId('sync-endpoint').value.trim();
+    const key = byId('sync-apikey').value.trim();
+    const pend = await getPending();
+    if(pend.length===0){ byId('sync-status').textContent='Nothing to sync'; return; }
+    if(!endpoint){
+      byId('sync-status').innerHTML = '<span class=\"warn\">No endpoint configured. Export JSON instead.</span>';
+      return;
+    }
+    try{
+      const res = await fetch(endpoint, { method:'POST', headers:{ 'Content-Type':'application/json', ...(key?{Authorization:'Bearer '+key}:{}) }, body: JSON.stringify({ records: pend }) });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      for(const r of pend){ r.synced=true; await put('attendance', r); }
+      byId('sync-status').innerHTML = `<span class=\"success\">Synced ${pend.length} records</span>`;
+      refreshPending();
+    }catch(e){ byId('sync-status').innerHTML = '<span class=\"error\">Sync failed: '+e.message+'</span>'; }
+  });
+
+  byId('btn-mark-synced').addEventListener('click', async ()=>{
+    const pend = await getPending(); for(const r of pend){ r.synced=true; await put('attendance', r); } byId('sync-status').textContent='Marked as synced'; refreshPending();
+  });
+
+  byId('btn-export-att').addEventListener('click', async ()=>{
+    const pend = await getPending(); if(pend.length===0){ alert('Nothing to export'); return; }
+    const rows = attendanceToRowObjects(pend);
+    downloadXLSX(rows, 'attendance_unsynced.xlsx');
+  });
+
+  // Dashboard
+  let attChart;
+  async function renderDashboard(){
+    const all = await getAll('attendance');
+    if(all.length===0){
+      byId('perf-metrics').textContent='No data yet';
+      byId('predictive').textContent='No risk flagged';
+      if(attChart){ attChart.destroy(); }
+      // Still render MDM with empty state
+      renderMidDayMeal([]);
+      return;
+    }
+
+    // Aggregate by date
+    const byDate = {};
+    for(const r of all){ byDate[r.date] = (byDate[r.date]||0) + (r.count||0); }
+    const labels = Object.keys(byDate).sort();
+    const data = labels.map(d=>byDate[d]);
+    const ctx = byId('chart-attendance').getContext('2d');
+    if(attChart) attChart.destroy();
+    attChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'Present Count', data, borderColor:'#22c55e', tension:.25, fill: false }] }, options:{ plugins:{legend:{labels:{color:'#cbd5e1'}}}, scales:{ x:{ ticks:{color:'#94a3b8'} }, y:{ ticks:{color:'#94a3b8'} } } } });
+
+    // Performance: average time per session
+    const avg = Math.round(all.reduce((a,b)=>a+(b.durationSec||0),0)/all.length);
+    const max = Math.max(...all.map(r=>r.durationSec||0));
+    byId('perf-metrics').innerHTML = `Average time to mark attendance: <b>${avg}s</b><br/>Max: ${max}s<br/>Records: ${all.length}`;
+
+    
+    // Predictive risk: simple rolling average and threshold
+    const rolling = data.slice(-10);
+    const rollAvg = Math.round(rolling.reduce((a,b)=>a+b,0)/Math.max(1,rolling.length));
+    const last = data[data.length-1];
+    const risk = last < rollAvg * 0.7 && data.length>3;
+    byId('predictive').innerHTML = risk ? `<span class=\"error\">Irregular attendance detected. Last: ${last}, Rolling Avg: ${rollAvg}</span>` : `<span class=\"success\">No risk flagged. Last: ${last}, Rolling Avg: ${rollAvg}</span>`;
+
+    // Render Mid-Day Meal analytics
+    renderMidDayMeal(all);
+  }
+
+  function monthStr(d){ return d.toISOString().slice(0,7); }
+
+  async function renderMidDayMeal(allAtt){
+    // Handle missing DOM (if user hasn't opened Dashboard yet)
+    const monthInp = byId('mdm-month'); const daysInp = byId('mdm-days');
+    const summaryEl = byId('mdm-summary'); const table = byId('mdm-table');
+    if(!monthInp || !summaryEl || !table) return;
+
+    // Default month to current
+    if(!monthInp.value){
+      const now = new Date();
+      monthInp.value = now.toISOString().slice(0,7);
+    }
+
+    const selMonth = monthInp.value; // YYYY-MM
+
+    // Fetch attendance if not provided
+    const att = Array.isArray(allAtt) && allAtt.length ? allAtt : await getAll('attendance');
+
+    // Filter records in month
+    const recs = att.filter(r => typeof r.date === 'string' && r.date.startsWith(selMonth));
+    const daysSet = new Set(recs.map(r=>r.date));
+
+    // Aggregate per class totals
+    const perClass = {};
+    let grand = 0;
+    for(const r of recs){
+      const cls = r.class || 'Unassigned';
+      perClass[cls] = (perClass[cls]||0) + (r.count||0);
+      grand += (r.count||0);
+    }
+
+    // Determine school days
+    const daysEntered = parseInt(daysInp.value,10);
+    const days = Number.isFinite(daysEntered) && daysEntered>0 ? daysEntered : daysSet.size;
+
+    // Update summary
+    summaryEl.innerHTML = recs.length===0
+      ? 'No attendance records for selected month'
+      : `Month: <b>${selMonth}</b> · Distinct days: <b>${days}</b> · Total meals (est.): <b>${grand}</b> · Avg/day: <b>${days?Math.round(grand/Math.max(1,days)):0}</b>`;
+
+    // Fill table
+    const tbody = table.querySelector('tbody');
+    const rows = Object.keys(perClass).sort().map(cls=>({ cls, meals: perClass[cls] }));
+    tbody.innerHTML = rows.map(r=>`<tr><td>${r.cls}</td><td>${r.meals}</td></tr>`).join('') || '<tr><td colspan="2" class="muted">No data</td></tr>';
+
+    // Bind listeners once
+    if(!monthInp.dataset.bound){
+      monthInp.addEventListener('change', ()=> renderMidDayMeal());
+      daysInp.addEventListener('input', ()=> renderMidDayMeal());
+      const btn = byId('btn-export-mdm');
+      if(btn){ btn.addEventListener('click', async ()=>{
+        // Export per-day, per-class breakdown for the month
+        const att2 = await getAll('attendance');
+        const recs2 = att2.filter(r => typeof r.date==='string' && r.date.startsWith(byId('mdm-month').value));
+        const out = [['Date','Class','Count']];
+        recs2.sort((a,b)=> a.date.localeCompare(b.date)).forEach(r=> out.push([r.date, r.class||'Unassigned', r.count||0]));
+        downloadCSV(out, `mdm_${byId('mdm-month').value}.csv`);
+      }); }
+      monthInp.dataset.bound = '1';
+    }
+  }
+
+  // Initialize
+  (async function init(){
+    await openDB();
+    byId('att-date').value = todayStr();
+    // Preload models early so first detection/enrollment is instant
+    try { await loadModels(); } catch(e) { console.warn('Model preload failed:', e); }
+    await refreshClassFilters();
+    await buildFaceMatcher();
+    await loadStudentsTable();
+  })();
+})();
+</script>
+</body>
+</html>
